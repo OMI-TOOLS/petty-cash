@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petty Cash Reconciliation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f0a;
+  --surface: #111811;
+  --surface-2: #1a221a;
+  --border: #2a3a2a;
+  --text: #e8f0e8;
+  --text-dim: #889888;
+  --accent: #43d643;
+  --accent-dim: #2a8a2a;
+  --danger: #e0533a;
+  --warn: #f0b040;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+.container { max-width: 720px; margin: 0 auto; }
+.header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.header-icon {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700;
+  color: #0a0f0a; flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+.header p { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.header-nav { margin-left: auto; display: flex; gap: 8px; }
+.nav-btn {
+  font-size: 12px; font-weight: 600;
+  padding: 8px 14px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-dim); text-decoration: none; transition: all 0.2s;
+}
+.nav-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+.nav-btn.active { color: var(--accent); border-color: var(--accent-dim); }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+}
+.card label {
+  display: block; font-size: 13px; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+textarea, input[type="text"], input[type="number"] {
+  width: 100%; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; line-height: 1.6;
+  resize: vertical; outline: none; transition: border-color 0.2s;
+}
+textarea:focus, input:focus { border-color: var(--accent); }
+textarea::placeholder { color: #555; font-size: 12px; }
+.btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+button {
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  border: none; border-radius: 8px; padding: 12px 20px;
+  cursor: pointer; transition: all 0.2s;
+}
+button:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #0a0f0a; flex: 1; }
+.btn-primary:hover { background: #5cf05c; }
+.btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent-dim); }
+.btn-danger { background: rgba(224,83,58,0.15); color: var(--danger); border: 1px solid rgba(224,83,58,0.3); }
+.results { display: none; }
+.results.show { display: block; }
+.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.results-header h2 { font-size: 15px; font-weight: 600; }
+.badge {
+  background: var(--accent-dim); color: var(--accent);
+  font-size: 12px; font-weight: 600; padding: 4px 10px;
+  border-radius: 20px; font-family: 'JetBrains Mono', monospace;
+}
+.summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.summary-item {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; text-align: center;
+}
+.summary-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+.summary-item .val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; }
+.summary-item .val::before { content: 'Ksh '; font-size: 10px; color: var(--text-dim); }
+.tx-list { display: flex; flex-direction: column; gap: 10px; }
+.tx-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.tx-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.tx-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 600; }
+.tx-amount { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.tx-amount::before { content: 'Ksh '; font-size: 12px; color: var(--text-dim); font-weight: 400; }
+.tx-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-top: 10px; }
+.field-group { display: flex; flex-direction: column; }
+.field-group label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 3px; font-weight: 500; }
+.field-group input, .field-group textarea {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; color: var(--text); font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; outline: none; min-height: 32px; resize: none; transition: border-color 0.2s;
+}
+.field-group input:focus, .field-group textarea:focus { border-color: var(--accent); }
+.field-group.full { grid-column: 1 / -1; }
+.tx-remove {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 18px; cursor: pointer; padding: 0; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; transition: all 0.2s;
+}
+.tx-remove:hover { color: var(--danger); background: rgba(224,83,58,0.1); }
+.status-bar {
+  display: none; padding: 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; margin-top: 14px; text-align: center;
+}
+.status-bar.show { display: block; animation: slideIn 0.3s; }
+.status-bar.success { background: rgba(67,214,67,0.1); border: 1px solid var(--accent-dim); color: var(--accent); }
+.status-bar.error { background: rgba(224,83,58,0.1); border: 1px solid rgba(224,83,58,0.3); color: var(--danger); }
+.status-bar.loading { background: rgba(240,176,64,0.1); border: 1px solid rgba(240,176,64,0.3); color: var(--warn); }
+.config-toggle {
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
+  text-align: center; padding: 10px; text-decoration: underline;
+  text-decoration-color: var(--border);
+}
+.config-toggle:hover { color: var(--accent); }
+.config-panel { display: none; margin-top: 10px; }
+.config-panel.show { display: block; }
+.config-panel input {
+  width: 100%; background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  outline: none; margin-top: 6px;
+}
+.config-panel input:focus { border-color: var(--accent); }
+.config-panel p { font-size: 11px; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+.config-panel label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; display: block; }
+.ledger-section { margin-top: 20px; }
+.ledger-section h3 {
+  font-size: 13px; font-weight: 600; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ledger-section h3 .count { font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+.ledger-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ledger-table th {
+  text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border);
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-dim); font-weight: 600;
+}
+.ledger-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.ledger-table td.desc { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: var(--text-dim); }
+.ledger-table td.amount { text-align: right; white-space: nowrap; }
+.ledger-table tr:hover td { background: var(--surface-2); }
+.ledger-empty { font-size: 13px; color: var(--text-dim); text-align: center; padding: 30px; }
+.delete-tx { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+.delete-tx:hover { color: var(--danger); }
+.footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); }
+@media (max-width: 480px) {
+  .tx-fields { grid-template-columns: 1fr; }
+  .summary { gap: 6px; }
+  .summary-item .val { font-size: 14px; }
+  body { padding: 12px; }
+  .card { padding: 16px; }
+  .ledger-table { font-size: 11px; }
+  .ledger-table th, .ledger-table td { padding: 6px 4px; }
+  .header-nav { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-icon">Ksh</div>
+    <div>
+      <h1>Petty Cash Reconciliation</h1>
+      <p>Paste M-PESA messages — auto-parsed, auto-saved</p>
+    </div>
+    <div class="header-nav">
+      <a href="index.html" class="nav-btn active">Entry</a>
+      <a href="dashboard.html" class="nav-btn">Dashboard</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Paste M-PESA Confirmations</label>
+    <textarea id="rawInput" placeholder="Paste M-PESA SMS/WhatsApp messages here. One or many — each is parsed automatically.
+
+Example:
+UJDE1AM1LQ Confirmed. Ksh3,000.00 paid to RIDGEWAYS TOTAL - DALEWA INVESTMENT. on 13/10/26 at 10:27 AM.New M-PESA balance is Ksh9,972.50. Transaction cost, Ksh16.50. Amount you can transact within the day is 497,000.00. See all your balances now https://saf.cx/kWQpy(Fuel for KCF to Muthithi,Ankole grill)"></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="parseMessages()">Parse Messages</button>
+      <button class="btn-secondary" onclick="clearInput()">Clear</button>
+    </div>
+
+    <div class="config-toggle" onclick="toggleConfig()">Click here to connect your Google Sheet</div>
+    <div class="config-panel" id="configPanel">
+      <label>Google Apps Script URL</label>
+      <input type="text" id="sheetUrl" placeholder="Paste the URL that ends in /exec here">
+      <p>This is the Web App URL from your Apps Script deployment. Paste it here once — it saves on this device. After that, every "Submit to Sheet" sends transactions straight to your Google Sheet.</p>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="card">
+      <div class="results-header">
+        <h2>Parsed Transactions</h2>
+        <span class="badge" id="txCount">0 transactions</span>
+      </div>
+      <div class="summary" id="summary">
+        <div class="summary-item"><label>Total Spent</label><div class="val" id="totalSpent">0.00</div></div>
+        <div class="summary-item"><label>Total Cost</label><div class="val" id="totalCost">0.00</div></div>
+        <div class="summary-item"><label>Grand Total</label><div class="val" id="grandTotal">0.00</div></div>
+      </div>
+      <div class="tx-list" id="txList"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="submitToSheet()">Submit to Sheet</button>
+        <button class="btn-secondary" onclick="saveToLocal()">Save Local</button>
+        <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+        <button class="btn-secondary" onclick="copyTSV()">Copy Table</button>
+      </div>
+      <div class="status-bar" id="statusBar"></div>
+    </div>
+  </div>
+
+  <div class="ledger-section">
+    <h3><span>Petty Cash Ledger (Local)</span><span class="count" id="ledgerCount">0 entries</span></h3>
+    <div class="card" style="padding: 0; overflow-x: auto;">
+      <table class="ledger-table" id="ledgerTable">
+        <thead><tr><th>Date</th><th>Code</th><th class="amount">Amount</th><th>Recipient</th><th>Description</th><th></th></tr></thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </div>
+    <div class="btn-row" id="ledgerActions" style="display:none;">
+      <button class="btn-secondary" onclick="exportAllCSV()">Export All (CSV)</button>
+      <button class="btn-secondary" onclick="exportJSON()">Export JSON</button>
+      <button class="btn-danger" onclick="clearLedger()">Clear All</button>
+    </div>
+  </div>
+
+  <div class="footer">Petty Cash Reconciliation — Omiflo<br>Data stored locally on this device + Google Sheet if connected.</div>
+</div>
+
+<script>
+let pendingTx = [];
+const STORE_KEY = 'pettyCashLedger';
+
+function getLedger() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; } }
+function saveLedgerData(data) { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+function parseAmount(str) { return parseFloat(str.replace(/,/g, '')) || 0; }
+
+function parseMessages() {
+  const raw = document.getElementById('rawInput').value.trim();
+  if (!raw) { showStatus('Paste at least one M-PESA message first.', 'error'); return; }
+  const lines = raw.split(/\n+/);
+  let messages = [], buffer = '';
+  for (let line of lines) {
+    line = line.trim(); if (!line) continue;
+    if (/^[A-Z0-9]{8,15}\s+Confirmed/i.test(line)) { if (buffer) messages.push(buffer); buffer = line; }
+    else buffer += (buffer ? ' ' : '') + line;
+  }
+  if (buffer) messages.push(buffer);
+  pendingTx = [];
+  for (let msg of messages) { const tx = parseSingle(msg); if (tx) pendingTx.push(tx); }
+  if (pendingTx.length === 0) { showStatus('Could not parse any transactions. Check the format.', 'error'); return; }
+  renderPending();
+  document.getElementById('results').classList.add('show');
+  showStatus(pendingTx.length + ' transaction(s) parsed. Review and submit.', 'success');
+  setTimeout(() => hideStatus(), 2500);
+}
+
+function parseSingle(msg) {
+  try {
+    const codeMatch = msg.match(/^([A-Z0-9]{8,15})\s+Confirmed/i);
+    if (!codeMatch) return null;
+    const code = codeMatch[1];
+    const amtMatch = msg.match(/Ksh([\d,]+\.?\d*)\s+(paid|sent)\s+to\s+(.+?)\s+on\s+/i);
+    if (!amtMatch) return null;
+    const amount = parseAmount(amtMatch[1]);
+    const direction = amtMatch[2].toLowerCase();
+    let recipient = amtMatch[3].trim().replace(/\.$/, '').trim();
+    let accountNum = '';
+    const acctMatch = recipient.match(/for\s+account\s+(\w+)/i);
+    if (acctMatch) { accountNum = acctMatch[1]; recipient = recipient.replace(/for\s+account\s+\w+/i, '').trim(); }
+    const dateMatch = msg.match(/on\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
+    const date = dateMatch ? dateMatch[1] : '';
+    const timeMatch = msg.match(/at\s+(\d{1,2}:\d{2}\s*[AP]M)/i);
+    const time = timeMatch ? timeMatch[1].replace(/\s+/g, ' ') : '';
+    const balMatch = msg.match(/balance\s+is\s+Ksh([\d,]+\.?\d*)/i);
+    const balance = balMatch ? parseAmount(balMatch[1]) : 0;
+    const costMatch = msg.match(/Transaction cost,?\s*Ksh([\d,]+\.?\d*)/i);
+    const cost = costMatch ? parseAmount(costMatch[1]) : 0;
+    let description = '';
+    const descMatch = msg.match(/https?:\/\/\S+\(([^)]+)\)/);
+    if (descMatch) description = descMatch[1].trim();
+    else { const lastParen = msg.match(/\(([^)]+)\)\s*$/); if (lastParen) description = lastParen[1].trim(); }
+    return { id: Date.now() + Math.random(), code, amount, direction, recipient, account: accountNum, date, time, balance, cost, description, submittedAt: new Date().toISOString() };
+  } catch { return null; }
+}
+
+function renderPending() {
+  const list = document.getElementById('txList');
+  list.innerHTML = '';
+  pendingTx.forEach((tx, idx) => {
+    const card = document.createElement('div');
+    card.className = 'tx-card';
+    card.innerHTML = `
+      <button class="tx-remove" onclick="removePending(${idx})">&times;</button>
+      <div class="tx-top"><span class="tx-code">${tx.code}</span><span class="tx-amount">${tx.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</span></div>
+      <div class="tx-fields">
+        <div class="field-group"><label>Recipient</label><input type="text" value="${esc(tx.recipient)}" onchange="updatePending(${idx}, 'recipient', this.value)"></div>
+        <div class="field-group"><label>Date</label><input type="text" value="${esc(tx.date)}" onchange="updatePending(${idx}, 'date', this.value)"></div>
+        <div class="field-group"><label>Time</label><input type="text" value="${esc(tx.time)}" onchange="updatePending(${idx}, 'time', this.value)"></div>
+        <div class="field-group"><label>Tx Cost</label><input type="number" step="0.01" value="${tx.cost}" onchange="updatePending(${idx}, 'cost', parseFloat(this.value))"></div>
+        ${tx.account ? `<div class="field-group"><label>Account</label><input type="text" value="${esc(tx.account)}" onchange="updatePending(${idx}, 'account', this.value)"></div>` : ''}
+        <div class="field-group"><label>M-PESA Balance</label><input type="number" step="0.01" value="${tx.balance}" onchange="updatePending(${idx}, 'balance', parseFloat(this.value))"></div>
+        <div class="field-group full"><label>Description</label><textarea rows="2" onchange="updatePending(${idx}, 'description', this.value)">${esc(tx.description)}</textarea></div>
+      </div>`;
+    list.appendChild(card);
+  });
+  document.getElementById('txCount').textContent = pendingTx.length + ' transaction' + (pendingTx.length !== 1 ? 's' : '');
+  updatePendingSummary();
+}
+
+function updatePendingSummary() {
+  const spent = pendingTx.reduce((s, t) => s + t.amount, 0);
+  const cost = pendingTx.reduce((s, t) => s + t.cost, 0);
+  document.getElementById('totalSpent').textContent = spent.toLocaleString('en-US', {minimumFractionDigits: 2});
+  document.getElementById('totalCost').textContent = cost.toLocaleString('en-US', {minimumFractionDigits: 2});
+  document.getElementById('grandTotal').textContent = (spent + cost).toLocaleString('en-US', {minimumFractionDigits: 2});
+}
+
+function updatePending(idx, field, value) { pendingTx[idx][field] = value; updatePendingSummary(); }
+function removePending(idx) { pendingTx.splice(idx, 1); renderPending(); if (pendingTx.length === 0) document.getElementById('results').classList.remove('show'); }
+
+// ---- Submit to Google Sheet ----
+function submitToSheet() {
+  if (pendingTx.length === 0) { showStatus('Nothing to submit.', 'error'); return; }
+  const url = document.getElementById('sheetUrl').value.trim() || localStorage.getItem('sheetUrl') || '';
+  if (!url) { showStatus('No Google Sheet URL set. Click "Click here to connect your Google Sheet" above to paste it.', 'error'); return; }
+  localStorage.setItem('sheetUrl', url);
+  showStatus('Sending to Google Sheet...', 'loading');
+  const payload = {
+    submittedBy: 'Leonard',
+    submitTime: new Date().toISOString(),
+    transactions: pendingTx.map(t => ({
+      code: t.code, date: t.date, time: t.time, amount: t.amount,
+      recipient: t.recipient, account: t.account || '', cost: t.cost,
+      balance: t.balance, description: t.description
+    }))
+  };
+  fetch(url, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(payload) })
+  .then(() => {
+    saveToLocalSilent();
+    saveHistory(pendingTx.length);
+    showStatus('Done! ' + pendingTx.length + ' transaction(s) sent to Google Sheet.', 'success');
+    pendingTx = [];
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('rawInput').value = '';
+    renderHistory();
+  })
+  .catch(err => { showStatus('Failed: ' + err.message + '. You can still Save Local or Export CSV.', 'error'); });
+}
+
+function saveToLocalSilent() {
+  const ledger = getLedger();
+  const existingCodes = new Set(ledger.map(t => t.code));
+  for (let tx of pendingTx) { if (!existingCodes.has(tx.code)) { ledger.push(tx); existingCodes.add(tx.code); } }
+  saveLedgerData(ledger);
+}
+
+// ---- Save to Local ----
+function saveToLocal() {
+  if (pendingTx.length === 0) { showStatus('Nothing to save.', 'error'); return; }
+  const ledger = getLedger();
+  const existingCodes = new Set(ledger.map(t => t.code));
+  let added = 0, skipped = 0;
+  for (let tx of pendingTx) { if (existingCodes.has(tx.code)) { skipped++; continue; } ledger.push(tx); added++; }
+  saveLedgerData(ledger);
+  pendingTx = [];
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('rawInput').value = '';
+  renderLedger();
+  showStatus(added + ' saved locally' + (skipped ? ', ' + skipped + ' duplicate(s) skipped' : '') + '.', 'success');
+  setTimeout(() => hideStatus(), 3000);
+}
+
+// ---- Ledger ----
+function renderLedger() {
+  const ledger = getLedger();
+  const body = document.getElementById('ledgerBody');
+  document.getElementById('ledgerCount').textContent = ledger.length + ' entr' + (ledger.length !== 1 ? 'ies' : 'y');
+  if (ledger.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" class="ledger-empty">No local entries yet.</td></tr>';
+    document.getElementById('ledgerActions').style.display = 'none';
+    return;
+  }
+  document.getElementById('ledgerActions').style.display = 'flex';
+  const sorted = [...ledger].sort((a, b) => (b.date + ' ' + b.time).localeCompare(a.date + ' ' + a.time));
+  body.innerHTML = sorted.map((tx) => `<tr>
+    <td>${esc(tx.date)}<br><span style="color:var(--text-dim);font-size:10px">${esc(tx.time)}</span></td>
+    <td style="color:var(--accent)">${esc(tx.code)}</td>
+    <td class="amount">${tx.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+    <td>${esc(tx.recipient)}</td>
+    <td class="desc">${esc(tx.description || '-')}</td>
+    <td><button class="delete-tx" onclick="deleteEntry('${tx.id}')">&times;</button></td>
+  </tr>`).join('');
+}
+
+function deleteEntry(id) { saveLedgerData(getLedger().filter(t => String(t.id) !== String(id))); renderLedger(); }
+function clearLedger() {
+  const input = prompt('Type DELETE to erase all local entries. This cannot be undone.');
+  if (input !== 'DELETE') { if (input !== null) alert('Nothing deleted - you must type DELETE exactly.'); return; }
+  saveLedgerData([]);
+  renderLedger();
+}
+
+// ---- Export ----
+function buildCSV(data) {
+  const headers = ['Date','Time','Code','Amount','Recipient','Account','Tx Cost','Balance','Description','Submitted At'];
+  let rows = [headers.join(',')];
+  for (let t of data) { rows.push([t.date,t.time,t.code,t.amount.toFixed(2),'"'+(t.recipient||'').replace(/"/g,'""')+'"','"'+(t.account||'')+'"',t.cost.toFixed(2),t.balance.toFixed(2),'"'+(t.description||'').replace(/"/g,'""')+'"',t.submittedAt||''].join(',')); }
+  return rows.join('\n');
+}
+function buildTSV(data) {
+  const headers = ['Date','Time','Code','Amount','Recipient','Account','Tx Cost','Balance','Description'];
+  let rows = [headers.join('\t')];
+  for (let t of data) { rows.push([t.date,t.time,t.code,t.amount.toFixed(2),t.recipient||'',t.account||'',t.cost.toFixed(2),t.balance.toFixed(2),t.description||''].join('\t')); }
+  return rows.join('\n');
+}
+function download(filename, content, mime) { const blob = new Blob([content], {type: mime}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); }
+function exportCSV() { if (!pendingTx.length) { showStatus('Nothing to export.', 'error'); return; } download('petty-cash-'+new Date().toISOString().slice(0,10)+'.csv', buildCSV(pendingTx), 'text/csv'); showStatus('CSV downloaded.', 'success'); setTimeout(() => hideStatus(), 2000); }
+function exportAllCSV() { const l = getLedger(); if (!l.length) return; download('petty-cash-ledger-'+new Date().toISOString().slice(0,10)+'.csv', buildCSV(l), 'text/csv'); }
+function exportJSON() { const l = getLedger(); if (!l.length) return; download('petty-cash-ledger-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(l, null, 2), 'application/json'); }
+function copyTSV() {
+  if (!pendingTx.length) { showStatus('Nothing to copy.', 'error'); return; }
+  const tsv = buildTSV(pendingTx);
+  navigator.clipboard.writeText(tsv).then(() => { showStatus('Copied! Paste into Google Sheets (Ctrl+V).', 'success'); setTimeout(() => hideStatus(), 2500); })
+  .catch(() => { const ta = document.createElement('textarea'); ta.value = tsv; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showStatus('Copied!', 'success'); setTimeout(() => hideStatus(), 2500); });
+}
+
+// ---- History ----
+function saveHistory(count) {
+  let hist = JSON.parse(localStorage.getItem('pcHistory') || '[]');
+  hist.unshift({ date: new Date().toLocaleString('en-GB'), count: count });
+  hist = hist.slice(0, 20);
+  localStorage.setItem('pcHistory', JSON.stringify(hist));
+}
+
+// ---- Helpers ----
+function showStatus(msg, type) { const bar = document.getElementById('statusBar'); bar.textContent = msg; bar.className = 'status-bar show ' + type; }
+function hideStatus() { document.getElementById('statusBar').className = 'status-bar'; }
+function clearInput() { document.getElementById('rawInput').value = ''; document.getElementById('results').classList.remove('show'); pendingTx = []; }
+function toggleConfig() { document.getElementById('configPanel').classList.toggle('show'); }
+function esc(str) { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.addEventListener('load', () => { const saved = localStorage.getItem('sheetUrl'); if (saved) document.getElementById('sheetUrl').value = saved; renderLedger(); });
+</script>
+</body>
+</html>

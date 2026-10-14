@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petty Cash Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f0a;
+  --surface: #111811;
+  --surface-2: #1a221a;
+  --border: #2a3a2a;
+  --text: #e8f0e8;
+  --text-dim: #889888;
+  --accent: #43d643;
+  --accent-dim: #2a8a2a;
+  --danger: #e0533a;
+  --warn: #f0b040;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+.container { max-width: 720px; margin: 0 auto; }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.header-icon {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 700;
+  color: #0a0f0a;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+.header p { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.header-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.nav-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+.nav-btn.active { color: var(--accent); border-color: var(--accent-dim); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.stat-box.full { grid-column: 1 / -1; }
+.stat-box label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 6px;
+}
+.stat-box .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+}
+.stat-box .val::before { content: 'Ksh '; font-size: 12px; color: var(--text-dim); font-weight: 400; }
+.stat-box .sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* Bar chart */
+.chart-section h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.bar-label {
+  width: 100px;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 24px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+.bar-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Daily totals */
+.daily-list { display: flex; flex-direction: column; gap: 8px; }
+.daily-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.daily-date { font-size: 13px; font-weight: 500; }
+.daily-amount { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--accent); }
+.daily-count { font-size: 11px; color: var(--text-dim); }
+
+/* Full ledger table */
+.ledger-card { overflow-x: auto; padding: 0; }
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.ledger-table th {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.ledger-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.ledger-table td.desc { font-family: 'Space Grotesk', sans-serif; color: var(--text-dim); }
+.ledger-table td.amount { text-align: right; }
+.ledger-table tr:hover td { background: var(--surface-2); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* Filter */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-dim);
+}
+
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stat-box .val { font-size: 18px; }
+  .bar-label { width: 70px; font-size: 10px; }
+  .ledger-table { font-size: 11px; }
+  .ledger-table th, .ledger-table td { padding: 6px 4px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-icon">Ksh</div>
+    <div>
+      <h1>Petty Cash Dashboard</h1>
+      <p>Summary and breakdown</p>
+    </div>
+    <div class="header-nav">
+      <a href="index.html" class="nav-btn">Entry</a>
+      <a href="dashboard.html" class="nav-btn active">Dashboard</a>
+    </div>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All Time</button>
+    <button class="filter-btn" onclick="setFilter('today', this)">Today</button>
+    <button class="filter-btn" onclick="setFilter('week', this)">This Week</button>
+    <button class="filter-btn" onclick="setFilter('month', this)">This Month</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <!-- Top recipients chart -->
+  <div class="card chart-section">
+    <h3>Top Recipients</h3>
+    <div class="bar-chart" id="recipientChart"></div>
+  </div>
+
+  <!-- Daily breakdown -->
+  <div class="card chart-section">
+    <h3>Spending by Day</h3>
+    <div class="daily-list" id="dailyList"></div>
+  </div>
+
+  <!-- Full ledger -->
+  <div class="card ledger-card">
+    <h3 style="font-size:13px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding:16px 16px 0;">Full Ledger</h3>
+    <table class="ledger-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Code</th>
+          <th class="amount">Amount</th>
+          <th>Recipient</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="fullLedger"></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    Petty Cash Dashboard — Omiflo<br>
+    Data from this device's local storage.
+  </div>
+
+</div>
+
+<script>
+const STORE_KEY = 'pettyCashLedger';
+let currentFilter = 'all';
+
+function getLedger() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function fmt(n) {
+  return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function parseDate(dateStr, timeStr) {
+  // Format: DD/MM/YY
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    let [d, m, y] = parts;
+    y = y.length === 2 ? '20' + y : y;
+    return new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}T${timeStr || '00:00'}`);
+  }
+  return new Date();
+}
+
+function filterLedger(ledger) {
+  if (currentFilter === 'all') return ledger;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(today);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  return ledger.filter(tx => {
+    const d = parseDate(tx.date, tx.time);
+    if (currentFilter === 'today') return d >= today;
+    if (currentFilter === 'week') return d >= weekStart;
+    if (currentFilter === 'month') return d >= monthStart;
+    return true;
+  });
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const all = getLedger();
+  const ledger = filterLedger(all);
+
+  // Stats
+  const totalSpent = ledger.reduce((s, t) => s + t.amount, 0);
+  const totalCost = ledger.reduce((s, t) => s + t.cost, 0);
+  const txCount = ledger.length;
+  const avgTx = txCount ? totalSpent / txCount : 0;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-box full">
+      <label>Total Spend (${currentFilter})</label>
+      <div class="val">${fmt(totalSpent + totalCost)}</div>
+      <div class="sub">${txCount} transactions • Avg Ksh ${fmt(avgTx)} per tx</div>
+    </div>
+    <div class="stat-box">
+      <label>Amount Spent</label>
+      <div class="val">${fmt(totalSpent)}</div>
+    </div>
+    <div class="stat-box">
+      <label>Transaction Costs</label>
+      <div class="val">${fmt(totalCost)}</div>
+    </div>
+  `;
+
+  // Top recipients
+  const byRecipient = {};
+  ledger.forEach(t => {
+    byRecipient[t.recipient] = (byRecipient[t.recipient] || 0) + t.amount;
+  });
+  const topRecipients = Object.entries(byRecipient).sort((a,b) => b[1] - a[1]).slice(0, 8);
+  const maxAmt = topRecipients.length ? topRecipients[0][1] : 1;
+
+  document.getElementById('recipientChart').innerHTML = topRecipients.length ? topRecipients.map(([name, amt]) => `
+    <div class="bar-row">
+      <div class="bar-label" title="${esc(name)}">${esc(name)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width: ${(amt/maxAmt*100).toFixed(1)}%"></div></div>
+      <div class="bar-value">${fmt(amt)}</div>
+    </div>
+  `).join('') : '<div class="empty-state">No data</div>';
+
+  // Daily breakdown
+  const byDate = {};
+  ledger.forEach(t => {
+    byDate[t.date] = byDate[t.date] || { total: 0, count: 0 };
+    byDate[t.date].total += t.amount + t.cost;
+    byDate[t.date].count++;
+  });
+  const sortedDates = Object.entries(byDate).sort((a,b) => b[0].localeCompare(a[0]));
+
+  document.getElementById('dailyList').innerHTML = sortedDates.length ? sortedDates.map(([date, info]) => `
+    <div class="daily-row">
+      <span class="daily-date">${esc(date)}</span>
+      <span class="daily-count">${info.count} tx</span>
+      <span class="daily-amount">Ksh ${fmt(info.total)}</span>
+    </div>
+  `).join('') : '<div class="empty-state">No data</div>';
+
+  // Full ledger table
+  const sorted = [...ledger].sort((a,b) => (b.date + ' ' + b.time).localeCompare(a.date + ' ' + a.time));
+  document.getElementById('fullLedger').innerHTML = sorted.length ? sorted.map(t => `
+    <tr>
+      <td>${esc(t.date)}<br><span style="color:var(--text-dim);font-size:10px">${esc(t.time)}</span></td>
+      <td style="color:var(--accent)">${esc(t.code)}</td>
+      <td class="amount">${fmt(t.amount)}</td>
+      <td>${esc(t.recipient)}</td>
+      <td class="desc">${esc(t.description || '-')}</td>
+    </tr>
+  `).join('') : `<tr><td colspan="5" class="empty-state">No entries yet</td></tr>`;
+}
+
+function esc(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+render();
+</script>
+</body>
+</html>

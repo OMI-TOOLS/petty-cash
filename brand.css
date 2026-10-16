@@ -1,0 +1,174 @@
+/* ============================================================
+   OMIFLO BRAND STYLESHEET
+   Applies Omiflo brand colours to the Petty Cash tool.
+   Just link this in index.html and dashboard.html:
+   <link rel="stylesheet" href="brand.css">
+   ============================================================ */
+
+:root {
+  /* Omiflo Brand Palette */
+  --omiflo-blue: #1A8FD1;
+  --omiflo-green: #6DC242;
+  --omiflo-deep-blue: #0D5F96;
+  --omiflo-sky-tint: #E3F4FC;
+  --omiflo-green-tint: #EEF7E6;
+
+  /* Override the tool's CSS variables */
+  --bg: #0a1a2e;
+  --surface: #0f2640;
+  --surface-2: #16304f;
+  --border: #1f4068;
+  --text: #eaf4fb;
+  --text-dim: #7a9bb5;
+  --accent: var(--omiflo-blue);
+  --accent-dim: var(--omiflo-deep-blue);
+  --danger: #e0533a;
+  --warn: #f0b040;
+  --radius: 12px;
+}
+
+/* ---- Header branding ---- */
+.header {
+  position: relative;
+  padding-top: 8px;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--omiflo-blue), var(--omiflo-green));
+  border-radius: 3px;
+}
+.header-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--omiflo-blue), var(--omiflo-deep-blue));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  color: #fff; flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.5px;
+}
+.header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.header h1::after {
+  content: ' · Omiflo';
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--omiflo-green);
+  letter-spacing: 0;
+}
+.header p {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+  background: var(--omiflo-blue);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #2ba0e0;
+}
+.btn-secondary:hover {
+  border-color: var(--omiflo-blue);
+}
+
+/* ---- Transaction cards ---- */
+.tx-code {
+  color: var(--omiflo-blue);
+}
+.badge {
+  background: rgba(26,143,209,0.15);
+  color: var(--omiflo-blue);
+}
+
+/* ---- Summary cards ---- */
+.summary-item {
+  border-top: 2px solid transparent;
+}
+.summary-item:nth-child(1) { border-top-color: var(--omiflo-blue); }
+.summary-item:nth-child(2) { border-top-color: var(--omiflo-green); }
+.summary-item:nth-child(3) { border-top-color: var(--omiflo-deep-blue); }
+
+/* ---- Config toggle ---- */
+.config-toggle:hover {
+  color: var(--omiflo-blue);
+}
+
+/* ---- Inputs ---- */
+textarea:focus, input:focus {
+  border-color: var(--omiflo-blue);
+}
+.field-group input:focus, .field-group textarea:focus {
+  border-color: var(--omiflo-blue);
+}
+
+/* ---- Nav ---- */
+.nav-btn:hover {
+  color: var(--omiflo-blue);
+  border-color: var(--omiflo-deep-blue);
+}
+.nav-btn.active {
+  color: var(--omiflo-blue);
+  border-color: var(--omiflo-deep-blue);
+}
+
+/* ---- Status bar ---- */
+.status-bar.success {
+  background: rgba(109,194,66,0.1);
+  border: 1px solid var(--omiflo-green);
+  color: var(--omiflo-green);
+}
+.status-bar.loading {
+  background: rgba(240,176,64,0.1);
+  border: 1px solid rgba(240,176,64,0.3);
+  color: var(--warn);
+}
+
+/* ---- Ledger ---- */
+.ledger-section h3 .count {
+  color: var(--omiflo-blue);
+}
+.ledger-table tr:hover td {
+  background: rgba(26,143,209,0.05);
+}
+
+/* ---- Footer ---- */
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.footer::before {
+  content: '';
+  display: block;
+  width: 40px; height: 3px;
+  background: linear-gradient(90deg, var(--omiflo-blue), var(--omiflo-green));
+  border-radius: 3px;
+  margin: 0 auto 12px;
+}
+.footer strong {
+  color: var(--omiflo-blue);
+  font-weight: 600;
+}
+
+/* ---- Dashboard specific ---- */
+.dash-card {
+  border-top: 3px solid var(--omiflo-blue);
+}
+.dash-summary .val {
+  color: var(--omiflo-blue);
+}
+.chart-bar {
+  background: linear-gradient(180deg, var(--omiflo-blue), var(--omiflo-deep-blue));
+}

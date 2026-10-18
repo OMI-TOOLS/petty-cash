@@ -220,8 +220,14 @@ UJDE1AM1LQ Confirmed. Ksh3,000.00 paid to RIDGEWAYS TOTAL - DALEWA INVESTMENT. o
     <div class="config-toggle" onclick="toggleConfig()">Click here to connect your Google Sheet</div>
     <div class="config-panel" id="configPanel">
       <label>Google Apps Script URL</label>
-      <input type="text" id="sheetUrl" placeholder="Paste the URL that ends in /exec here">
+      <input type="text" id="sheetUrl" placeholder="Paste the URL that ends in /exec here" oninput="saveSheetUrl()">
+      <span id="urlSaved" style="font-size:11px;color:var(--accent);display:none;margin-top:4px;">URL saved on this device</span>
+      <button class="btn-secondary" onclick="testConnection()" style="margin-top:10px;font-size:13px;padding:10px 18px;">Save & Test</button>
+      <span id="testResult" style="font-size:12px;display:block;margin-top:8px;"></span>
       <p>This is the Web App URL from your Apps Script deployment. Paste it here once — it saves on this device. After that, every "Submit to Sheet" sends transactions straight to your Google Sheet.</p>
+    <label style="margin-top:14px;">Your Name (for submissions)</label>
+      <input type="text" id="submitterName" placeholder="Leonard" oninput="localStorage.setItem('submitterName', this.value.trim())">
+      <p>Entries will be labeled with this name in the Google Sheet.</p>
     </div>
   </div>
 
@@ -269,6 +275,13 @@ UJDE1AM1LQ Confirmed. Ksh3,000.00 paid to RIDGEWAYS TOTAL - DALEWA INVESTMENT. o
 let pendingTx = [];
 const STORE_KEY = 'pettyCashLedger';
 
+// Pre-fill config on page load
+window.addEventListener('DOMContentLoaded', function() {
+  const savedUrl = localStorage.getItem('sheetUrl');
+  if (savedUrl) document.getElementById('sheetUrl').value = savedUrl;
+  const savedName = localStorage.getItem('submitterName');
+  if (savedName && document.getElementById('submitterName')) document.getElementById('submitterName').value = savedName;
+});
 function getLedger() { try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch { return []; } }
 function saveLedgerData(data) { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
 function parseAmount(str) { return parseFloat(str.replace(/,/g, '')) || 0; }
@@ -365,7 +378,7 @@ function submitToSheet() {
   localStorage.setItem('sheetUrl', url);
   showStatus('Sending to Google Sheet...', 'loading');
   const payload = {
-    submittedBy: 'Leonard',
+    submittedBy: document.getElementById('submitterName')?.value.trim() || localStorage.getItem('submitterName') || 'Leonard',
     submitTime: new Date().toISOString(),
     transactions: pendingTx.map(t => ({
       code: t.code, date: t.date, time: t.time, amount: t.amount,
@@ -476,6 +489,26 @@ function showStatus(msg, type) { const bar = document.getElementById('statusBar'
 function hideStatus() { document.getElementById('statusBar').className = 'status-bar'; }
 function clearInput() { document.getElementById('rawInput').value = ''; document.getElementById('results').classList.remove('show'); pendingTx = []; }
 function toggleConfig() { document.getElementById('configPanel').classList.toggle('show'); }
+function saveSheetUrl() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  if (url) {
+    localStorage.setItem('sheetUrl', url);
+    const saved = document.getElementById('urlSaved');
+    if (saved) { saved.style.display = 'block'; setTimeout(() => { saved.style.display = 'none'; }, 2000); }
+  }
+}
+async function testConnection() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  if (!url || !url.includes('/exec')) { document.getElementById('testResult').textContent = 'Paste a valid URL ending in /exec'; document.getElementById('testResult').style.color = 'var(--danger)'; return; }
+  localStorage.setItem('sheetUrl', url);
+  document.getElementById('testResult').textContent = 'Testing...'; document.getElementById('testResult').style.color = 'var(--warn)';
+  try {
+    const res = await fetch(url, { method: 'GET' });
+    const data = await res.json();
+    if (data.status === 'ok') { document.getElementById('testResult').textContent = 'Connected! Sheet is ready.'; document.getElementById('testResult').style.color = 'var(--accent)'; document.getElementById('urlSaved').style.display = 'block'; }
+    else { document.getElementById('testResult').textContent = 'Connected but unexpected response.'; document.getElementById('testResult').style.color = 'var(--warn)'; }
+  } catch (err) { document.getElementById('testResult').textContent = 'Failed: ' + err.message; document.getElementById('testResult').style.color = 'var(--danger)'; }
+}
 function esc(str) { return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 window.addEventListener('load', () => { const saved = localStorage.getItem('sheetUrl'); if (saved) document.getElementById('sheetUrl').value = saved; renderLedger(); });
